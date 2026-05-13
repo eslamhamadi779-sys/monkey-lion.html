@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لعبة القرد والأسد 🐒🦁</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(to bottom, #87CEEB 0%, #90EE90 100%);
+            font-family: 'Arial', sans-serif;
+            overflow: hidden;
+        }
+        
+        #gameContainer {
+            position: relative;
+            width: 800px;
+            height: 400px;
+            margin: 0 auto;
+            border: 5px solid #8B4513;
+            background: linear-gradient(to bottom, #87CEEB 60%, #228B22 60%);
+            overflow: hidden;
+            border-radius: 15px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+        }
+        
+        #player {
+            position: absolute;
+            width: 55px;
+            height: 55px;
+            font-size: 45px;
+            transition: all 0.15s ease;
+            z-index: 20;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+        
+        #tree {
+            position: absolute;
+            left: 50%;
+            bottom: 40px;
+            transform: translateX(-50%);
+            font-size: 140px;
+            z-index: 2;
+            opacity: 0.8;
+        }
+        
+        #treeTop {
+            position: absolute;
+            left: 50%;
+            top: 20px;
+            transform: translateX(-50%);
+            font-size: 120px;
+            z-index: 3;
+        }
+        
+        #lion {
+            position: absolute;
+            font-size: 55px;
+            bottom: 45px;
+            transition: left 0.2s ease;
+            z-index: 15;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.7);
+        }
+        
+        #babies {
+            position: absolute;
+            left: 50%;
+            top: 60px;
+            transform: translateX(-50%);
+            font-size: 35px;
+            z-index: 25;
+            text-align: center;
+        }
+        
+        .banana {
+            position: absolute;
+            font-size: 35px;
+            animation: wiggle 2s ease-in-out infinite;
+            z-index: 10;
+            transition: all 0.2s;
+        }
+        
+        @keyframes wiggle {
+            0%, 100% { transform: rotate(-5deg); }
+            50% { transform: rotate(5deg); }
+        }
+        
+        #score {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 22px;
+            font-weight: bold;
+            color: #FF4500;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
+            z-index: 30;
+        }
+        
+        #hunger {
+            position: absolute;
+            top: 15px;
+            left: 20px;
+            font-size: 22px;
+            font-weight: bold;
+            color: #FFD700;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
+            z-index: 30;
+        }
+        
+        #ground {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 45px;
+            background: linear-gradient(to top, #8B4513 0%, #D2691E 100%);
+            border-top: 4px solid #654321;
+            z-index: 1;
+        }
+        
+        #gameOver {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(139,69,19,0.95);
+            color: white;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            display: none;
+            z-index: 50;
+            border: 3px solid #FFD700;
+        }
+        
+        .controls {
+            text-align: center;
+            margin-top: 20px;
+            color: #2C3E50;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #8B4513;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.3);
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        
+        button {
+            background: linear-gradient(45deg, #FF6B6B, #FF8E53);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 18px;
+            border-radius: 30px;
+            cursor: pointer;
+            box-shadow: 0 6px 20px rgba(255,107,107,0.4);
+            font-weight: bold;
+        }
+        
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(255,107,107,0.6);
+        }
+    </style>
+</head>
+<body>
+    <h1>🐒 مغامرة القرد والأسد 🦁</h1>
+    
+    <div id="gameContainer">
+        <div id="score">النقاط: 0</div>
+        <div id="hunger">جوع الصغار: 100%</div>
+        <div id="player">🐒</div>
+        <div id="tree">🌲</div>
+        <div id="treeTop">🌳</div>
+        <div id="lion">🦁</div>
+        <div id="babies">🐒🐒🐒</div>
+        <div id="ground"></div>
+        
+        <div id="gameOver">
+            <h2 id="gameOverTitle">انتهت اللعبة!</h2>
+            <p>النقاط النهائية: <span id="finalScore">0</span></p>
+            <p id="gameOverMessage"></p>
+            <button onclick="restartGame()">🔄 لعب مرة أخرى</button>
+        </div>
+    </div>
+    
+    <div class="controls">
+        <p>← يمين | شمال → | أعلى ↑ صعود الشجرة | أسفل ↓ نزول | اجمع الموز للصغار! 🍌</p>
+    </div>
+
+    <script>
+        // العناصر
+        const player = document.getElementById("player");
+        const lion = document.getElementById("lion");
+        const gameContainer = document.getElementById("gameContainer");
+        const scoreElement = document.getElementById("score");
+        const hungerElement = document.getElementById("hunger");
+        const gameOverElement = document.getElementById("gameOver");
+        const finalScoreElement = document.getElementById("finalScore");
+        const gameOverTitle = document.getElementById("gameOverTitle");
+        const gameOverMessage = document.getElementById("gameOverMessage");
+
+        // المتغيرات
+        let playerX = 370; // بداية عند الشجرة
+        let playerY = 60;
+        let heldBananas = 0;
+        let score = 0;
+        let babyHunger = 100;
+        let lionX = 800;
+        let bananas = [];
+        let gameRunning = true;
+        let bananaSpawnTimer = 0;
+
+        const treeCenter = 375;
+        const groundY = 60;
+        const treeTopY = 280;
+        const maxX = 750;
+        const minX = 20;
+
+        // إنشاء موز
+        function createBanana() {
+            const banana = document.createElement('div');
+            banana.className = 'banana';
+            banana.innerHTML = '🍌';
+            banana.style.left = (Math.random() * 700 + 50) + 'px';
+            banana.style.bottom = (Math.random() * 150 + 60) + 'px';
+            gameContainer.appendChild(banana);
+            bananas.push({
+                element: banana,
+                spawnTime: Date.now()
+            });
+        }
+
+        // تحديث اللعبة
+        function update() {
+            if (!gameRunning) return;
+
+            // تحديث موقع القرد
+            player.style.left = playerX + 'px';
+            player.style.bottom = playerY + 'px';
+
+            // حركة الأسد
+            lionX -= 2.5;
+            if (lionX < -60) lionX = 800;
+            
+            // مطاردة القرد إذا كان على الأرض
+            if (playerY < 100 && Math.abs(playerX - lionX) < 200) {
+                lionX -= (playerX > lionX ? 1.5 : -1.5);
+            }
+            
+            lion.style.left = lionX + 'px';
+
+            // إنشاء موز كل ثانية
+            bananaSpawnTimer++;
+            if (bananaSpawnTimer > 60) {
+                createBanana();
+                bananaSpawnTimer = 0;
+            }
+
+            // تحديث الموز (يختفي بعد 3 ثواني)
+            bananas = bananas.filter(bananaObj => {
+                if (Date.now() - bananaObj.spawnTime > 3000) {
+                    bananaObj.element.remove();
+                    return false;
+                }
+                return true;
+            });
+
+            // جمع الموز
+            const playerRect = {
+                left: playerX, right: playerX + 55,
+                bottom: playerY, top: playerY + 55
+            };
+
+            bananas.forEach((bananaObj, index) => {
+                const banana = bananaObj.element;
+                const bananaRect = {
+                    left: parseInt(banana.style.left),
+                    right: parseInt(banana.style.left) + 35,
+                    bottom: parseInt(banana.style.bottom),
+                    top: parseInt(banana.style.bottom) + 35
+                };
+
+                if (playerX < bananaRect.right + 10 &&
+                    playerX + 55 > bananaRect.left - 10 &&
+                    playerY < bananaRect.top + 10 &&
+                    playerY + 55 > bananaRect.bottom - 10) {
+                    
+                    banana.remove();
+                    bananas.splice(index, 1);
+                    heldBananas++;
+                    score += 5;
+                    scoreElement.textContent = `النقاط: ${score}`;
+                    
+                    // تأثير بصري
+                    player.style.transform = 'scale(1.15)';
+                    setTimeout(() => player.style.transform = 'scale(1)', 200);
+                }
+            });
+
+            // إطعام الصغار عند الصعود لأعلى الشجرة
+            if (playerY > treeTopY - 20 && Math.abs(playerX - treeCenter) < 60 && heldBananas > 0) {
+                score += heldBananas * 15;
+                babyHunger = Math.min(100, babyHunger + heldBananas * 25);
+                heldBananas = 0;
+                scoreElement.textContent = `النقاط: ${score}`;
+                
+                // تأثير فرحة الصغار
+                document.getElementById("babies").innerHTML = "😍🐒😍🐒😍";
+                setTimeout(() => {
+                    document.getElementById("babies").innerHTML = "🐒🐒🐒";
+                }, 1000);
+            }
+
+            // تحديث جوع الصغار
+            babyHunger = Math.max(0, babyHunger - 0.1);
+            hungerElement.textContent = `جوع الصغار: ${Math.round(babyHunger)}%`;
+
+            // Game Over إذا جاع الصغار تماماً
+            if (babyHunger <= 0) {
+                gameOver("الصغار جاعوا وماتوا! 😢", "احمِ صغارك!");
+            }
+
+            // اصطدام الأسد بالقرد
+            if (playerY < 110 && Math.abs(playerX - lionX) < 50) {
+                gameOver("🦁 الأسد أكل القرد!", "احترس من الأسد الجائع!");
+            }
+
+            requestAnimationFrame(update);
+        }
+
+        // نهاية اللعبة
+        function gameOver(title, message) {
+            gameRunning = false;
+            gameOverTitle.textContent = title;
+            gameOverMessage.textContent = message;
+            finalScoreElement.textContent = score;
+            gameOverElement.style.display = 'block';
+        }
+
+        // إعادة اللعب
+        function restartGame() {
+            gameRunning = true;
+            playerX = treeCenter - 27;
+            playerY = groundY;
+            heldBananas = 0;
+            score = 0;
+            babyHunger = 100;
+            lionX = 800;
+            bananas.forEach(b => b.element.remove());
+            bananas = [];
+            bananaSpawnTimer = 0;
+            
+            scoreElement.textContent = `النقاط: 0`;
+            hungerElement.textContent = `جوع الصغار: 100%`;
+            gameOverElement.style.display = 'none';
+            document.getElementById("babies").innerHTML = "🐒🐒🐒";
+            
+            update();
+        }
+
+        // التحكم
+        document.addEventListener("keydown", (e) => {
+            if (!gameRunning) return;
+            e.preventDefault();
+
+            // يمين ويسار فقط على الأرض أو قرب الشجرة
+            if (playerY < 120 || Math.abs(playerX - treeCenter) < 80) {
+                if (e.key === "ArrowRight") {
+                    playerX = Math.min(playerX + 20, maxX);
+                }
+                if (e.key === "ArrowLeft") {
+                    playerX = Math.max(playerX - 20, minX);
+                }
+            }
+
+            // صعود الشجرة (فقط قرب الشجرة)
+            if (e.key === "ArrowUp" && Math.abs(playerX - treeCenter) < 60) {
+                playerY = Math.min(playerY + 25, treeTopY);
+            }
+
+            // نزول
+            if (e.key === "ArrowDown") {
+                playerY = Math.max(playerY - 25, groundY);
+            }
+
+            // قفز
+            if (e.key === " ") {
+                if (playerY === groundY) {
+                    playerY += 20;
+                }
+            }
+        });
+
+        // دعم اللمس
+        let touchStartX = 0, touchStartY = 0;
+        gameContainer.addEventListener('touchstart', (e) => {
+            if (!gameRunning) return;
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+        });
+
+        gameContainer.addEventListener('touchend', (e) => {
+            if (!gameRunning) return;
+            const touchEndX = e.changedTouches[0].clientX;
+            const touchEndY = e.changedTouches[0].clientY;
+            const diffX = touchStartX - touchEndX;
+            const diffY = touchStartY - touchEndY;
+
+            if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 30) {
+                if (diffX > 0) playerX = Math.min(playerX + 50, maxX);
+                else playerX = Math.max(playerX - 50, minX);
+            } else if (diffY > 30) {
+                playerY = Math.max(playerY - 50, groundY);
+            } else if (diffY < -30 && Math.abs(playerX - treeCenter) < 60) {
+                playerY = Math.min(playerY + 50, treeTopY);
+            }
+        });
+
+        // بدء اللعبة
+        update();
+    </script>
+</body>
+</html>
