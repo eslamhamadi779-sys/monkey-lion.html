@@ -166,9 +166,56 @@
             transform: translateY(-3px);
             box-shadow: 0 8px 25px rgba(255,107,107,0.6);
         }
+
+#mobileControls{
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    gap:20px;
+
+    margin-top:20px;
+}
+
+.verticalBtns{
+    display:flex;
+
+    flex-direction:column;
+
+    gap:10px;
+}
+
+.controlBtn{
+    width:70px;
+    height:70px;
+
+    border:none;
+
+    border-radius:20px;
+
+    font-size:30px;
+
+    background:#8B4513;
+
+    color:white;
+
+    box-shadow:0 5px 10px rgba(0,0,0,0.3);
+
+    cursor:pointer;
+}
+
+.controlBtn:active{
+    transform:scale(0.95);
+}
+        
     </style>
 </head>
 <body>
+
+    touch-action: manipulation;
+    
     <h1>🐒 مغامرة القرد والأسد 🦁</h1>
     
     <div id="gameContainer">
@@ -192,6 +239,19 @@
     <div class="controls">
         <p>← يمين | شمال → | أعلى ↑ صعود الشجرة | أسفل ↓ نزول | اجمع الموز للصغار! 🍌</p>
     </div>
+
+    <div id="mobileControls">
+
+    <button class="controlBtn" id="leftBtn">⬅️</button>
+
+    <div class="verticalBtns">
+        <button class="controlBtn" id="upBtn">⬆️</button>
+        <button class="controlBtn" id="downBtn">⬇️</button>
+    </div>
+
+    <button class="controlBtn" id="rightBtn">➡️</button>
+
+</div>
 
     <script>
         // العناصر
@@ -364,6 +424,42 @@
             update();
         }
 
+
+
+
+
+        // أزرار الموبايل
+
+document.getElementById("leftBtn").addEventListener("touchstart",()=>{
+
+    playerX = Math.max(playerX - 25, minX);
+
+});
+
+document.getElementById("rightBtn").addEventListener("touchstart",()=>{
+
+    playerX = Math.min(playerX + 25, maxX);
+
+});
+
+document.getElementById("upBtn").addEventListener("touchstart",()=>{
+
+    if(Math.abs(playerX - treeCenter) < 60){
+
+        playerY = Math.min(playerY + 25, treeTopY);
+
+    }
+
+});
+
+document.getElementById("downBtn").addEventListener("touchstart",()=>{
+
+    playerY = Math.max(playerY - 25, groundY);
+
+});
+
+        
+        
         // التحكم
         document.addEventListener("keydown", (e) => {
             if (!gameRunning) return;
